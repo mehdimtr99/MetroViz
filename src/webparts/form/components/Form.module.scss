@@ -12,18 +12,19 @@ $color-text: #656880;
 body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   background-color: #EEF0F7;
-  
+
   min-height: 100%;
   overflow: hidden;
 }
+
 .n_b_8474018e {
-    width: auto !important;
-    overflow: hidden !important;
+  width: auto !important;
+  overflow: hidden !important;
 }
 
-.m_b_8474018e{
-    width: auto !important;
-    overflow: hidden !important;
+.m_b_8474018e {
+  width: auto !important;
+  overflow: hidden !important;
 }
 
 .container {
@@ -84,7 +85,8 @@ body {
       margin: 10px 0;
     }
 
-    .textField,button {
+    .textField,
+    button {
       width: 100%;
       border: none;
       padding: 14px;
@@ -97,52 +99,57 @@ body {
       font-size: 1rem;
       color: #656880;
     }
+
     .ms-TextField {
-        border: 2px solid $color-border;
-        margin: 5px 0 10px;
-        font-size: 1rem;
-        color: $color-text;
-    
-        &:focus-within {
-          border-color: $color-text;
-          border: 4px solid $color-border;
-          outline: none;
-        }
-    
-        &::-webkit-input-placeholder {
-          color: $color-text;
-        }
-        &::-moz-placeholder {
-          color: $color-text;
-        }
-        &::-ms-input-placeholder {
-          color: $color-text;
-        }
-        &::placeholder {
-          color: $color-text;
-        }
-    
-        .ms-TextField-fieldGroup {
-          border: none;
-          padding: 14px;
-          border-radius: 3px;
-        }
+      border: 2px solid $color-border;
+      margin: 5px 0 10px;
+      font-size: 1rem;
+      color: $color-text;
+
+      &:focus-within {
+        border-color: $color-text;
+        border: 4px solid $color-border;
+        outline: none;
       }
 
+      &::-webkit-input-placeholder {
+        color: $color-text;
+      }
+
+      &::-moz-placeholder {
+        color: $color-text;
+      }
+
+      &::-ms-input-placeholder {
+        color: $color-text;
+      }
+
+      &::placeholder {
+        color: $color-text;
+      }
+
+      .ms-TextField-fieldGroup {
+        border: none;
+        padding: 14px;
+        border-radius: 3px;
+      }
+    }
+
     button {
-      background: rgb(255,255,255);
-      background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241,38,38,1) 35%, rgba(186,71,64,1) 100%);
+      background: rgb(255, 255, 255);
+      background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241, 38, 38, 1) 35%, rgba(186, 71, 64, 1) 100%);
       display: block;
       color: $primary-color;
       font-size: 1rem;
       cursor: $cursor;
       box-shadow: 0 5px 20px #89caff94;
       transition: box-shadow .3s ease-in-out;
-      &:hover{
+
+      &:hover {
         background: linear-gradient(90deg, rgb(165, 105, 105) 0%, rgb(184, 31, 31) 35%, rgb(186, 71, 65)100%);
       }
     }
-   
+
     button:hover {
       box-shadow: none;
     }
@@ -156,18 +163,46 @@ body {
     }
   }
 }
-.container1{
-  .container11{
+
+.container1 {
+  .container11 {
     color: #6f86ee;
-    .list-title{
+    li{
+      font-size: 1.3rem;
+      font-weight: 500;
+      color : rgba(255, 99, 132);
+    }
+
+    .list-title {
       font-size: 1.2rem;
       color: #1A2250;
       padding: 10px 40px 10px 10px;
+      --s: 0.1em;
+      /* the thickness of the line */
+      --c: rgba(75, 192, 192);
+      /* the color */
+      color: #0000;
+      padding-bottom: var(--s);
+      background:
+        linear-gradient(90deg, var(--c) 50%, #000 0) calc(100% - var(--_p, 0%))/200% 100%,
+        linear-gradient(var(--c) 0 0) 0% 100%/var(--_p, 0%) var(--s) no-repeat;
+      -webkit-background-clip: text, padding-box;
+      background-clip: text, padding-box;
+      transition: 0.5s;
+      font-family: system-ui, sans-serif;
+      font-size: 1.5rem;
+      font-weight: 620;
+      cursor: pointer;
+
+      &:hover {
+        --_p: 100%
+      }
     }
 
   }
-  .container12{
-    .form2{
+
+  .container12 {
+    .form2 {
       p {
         font-size: 14px;
         color: #3B4169;
@@ -175,9 +210,10 @@ body {
         padding: 10px 40px 10px 10px;
 
       }
+
       button {
-        background: rgb(255,255,255);
-        background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241,38,38,1) 35%, rgba(186,71,64,1) 100%);
+        background: rgb(255, 255, 255);
+        background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241, 38, 38, 1) 35%, rgba(186, 71, 64, 1) 100%);
         display: block;
         color: $primary-color;
         font-size: 1rem;
@@ -188,93 +224,102 @@ body {
         width: 30%;
         box-shadow: 0 5px 20px #89caff94;
         transition: box-shadow .3s ease-in-out;
-        &:hover{
+
+        &:hover {
           background: linear-gradient(90deg, rgb(165, 105, 105) 0%, rgb(184, 31, 31) 35%, rgb(186, 71, 65)100%);
         }
       }
-      .container121{
+
+      .container121 {
         display: flex;
         flex-direction: row-reverse;
         justify-content: space-between;
         align-items: center;
-  
-        .container121-text{
+
+        .container121-text {
           padding: 10px 40px 10px 10px;
-  
+          flex-grow: 2;
+
           h2 {
             font-size: 1.2rem;
             color: #1A2250;
           }
-      
+
           p {
             font-size: 14px;
             color: #3B4169;
             margin: 10px 0;
           }
-      
-          .textField,button {
+
+          .textField,
+          button {
             width: 100%;
             border: none;
             padding: 14px;
             border-radius: 3px;
           }
-      
+
           .textField {
             border: 2px solid #DADDEC;
             margin: 5px 0 10px;
             font-size: 1rem;
             color: #656880;
           }
+
           .ms-TextField {
-              border: 2px solid $color-border;
-              margin: 5px 0 10px;
-              font-size: 1rem;
-              color: $color-text;
-          
-              &:focus-within {
-                border-color: $color-text;
-                border: 4px solid $color-border;
-                outline: none;
-              }
-          
-              &::-webkit-input-placeholder {
-                color: $color-text;
-              }
-              &::-moz-placeholder {
-                color: $color-text;
-              }
-              &::-ms-input-placeholder {
-                color: $color-text;
-              }
-              &::placeholder {
-                color: $color-text;
-              }
-          
-              .ms-TextField-fieldGroup {
-                border: none;
-                padding: 14px;
-                border-radius: 3px;
-              }
+            border: 2px solid $color-border;
+            margin: 5px 0 10px;
+            font-size: 1rem;
+            color: $color-text;
+
+            &:focus-within {
+              border-color: $color-text;
+              border: 4px solid $color-border;
+              outline: none;
             }
-      
+
+            &::-webkit-input-placeholder {
+              color: $color-text;
+            }
+
+            &::-moz-placeholder {
+              color: $color-text;
+            }
+
+            &::-ms-input-placeholder {
+              color: $color-text;
+            }
+
+            &::placeholder {
+              color: $color-text;
+            }
+
+            .ms-TextField-fieldGroup {
+              border: none;
+              padding: 14px;
+              border-radius: 3px;
+            }
+          }
+
           button {
-            background: rgb(255,255,255);
-            background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241,38,38,1) 35%, rgba(186,71,64,1) 100%);
+            background: rgb(255, 255, 255);
+            background: linear-gradient(45deg, rgb(199, 127, 127) 0%, rgba(241, 38, 38, 1) 35%, rgba(186, 71, 64, 1) 100%);
             display: block;
             color: $primary-color;
             font-size: 1rem;
             cursor: $cursor;
             box-shadow: 0 5px 20px #89caff94;
             transition: box-shadow .3s ease-in-out;
-            &:hover{
+
+            &:hover {
               background: linear-gradient(90deg, rgb(165, 105, 105) 0%, rgb(184, 31, 31) 35%, rgb(186, 71, 65)100%);
             }
           }
-         
+
           button:hover {
             box-shadow: none;
           }
-      
+
           span {
             display: block;
             text-align: center;
@@ -282,13 +327,11 @@ body {
             color: #BABDCB;
             font-size: 12px;
           }
-  
+
         }
       }
     }
-   
-  }
-  
-}
 
- 
+  }
+
+}

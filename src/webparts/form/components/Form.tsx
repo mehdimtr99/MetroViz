@@ -11,6 +11,8 @@ import Spinner from './Spinner';
 import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
 import styles from './Form.module.scss';
 import { ISummary } from './ISummary';
+import { ChartControl } from '@pnp/spfx-controls-react/lib/ChartControl';
+import { IData } from './IData';
 // Set SharePoint site URL
 sp.setup({
   sp: {
@@ -20,11 +22,13 @@ sp.setup({
 
 export default class Form extends React.Component<IFormProps, IFormStates> {
 
+
   constructor(props: {}) {
     super(props);
     sp.setup({
       spfxContext: this.context
     })
+
     this.state = {
       num: '',
       showAdditionalFields: false,
@@ -38,9 +42,14 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       summary: { Id: 0, marking: '', characteristic: '', value: 0, limInf: 0, limSup: 0, conformity: true, type: '', manifacturer: '', family: '', date: '', employee: '' },
       newId: 0,
       showDialog: false,
-      summaries : []
+      summaries: [],
+      datas: [],
+      datas2: [],
+      point: { val: 0, date: '' },
+      len: []
     };
   }
+
   private Submit = () => {
     event.preventDefault();
     // Set showDialog state to true to show the confirmation dialog
@@ -62,20 +71,38 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
 
   private handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id', 'value', 'limSup', 'linInf', 'marking').filter(`marking eq '${this.state.num}'`).get(); 
     try {
+      const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id', 'value', 'limSup', 'linInf', 'marking').filter(`marking eq '${this.state.num}'`).get();
       const machine: IMachine[] = await sp.web.lists.getByTitle("Machine").items.filter(`marking eq '${this.state.num}'`).get();
-      const summary: ISummary[] = await sp.web.lists.getByTitle("Summary").items.filter(`marking eq '${this.state.num}'`).get();
-      console.log(summary);
-      this.setState({ showAdditionalFields: true, characteristics,machine: machine[0],summaries:summary })
+      const summaries: ISummary[] = await sp.web.lists.getByTitle("Summary").items.filter(`marking eq '${this.state.num}'`).get();
+      console.log(summaries);
+
+      const Data: IData[] = [];
+      const len = [];
+      for (let i = 0; i < characteristics.length; i++) {
+        const vals = [];
+        const dates = [];
+        for (const summary of summaries) {
+          if (Number(summary.characteristic) == i) {
+
+            vals.push(summary.value);
+            dates.push(summary.date);
+          }
+        }
+        const data: IData = { vals, dates };
+        len.push(vals.length);
+
+        Data.push(data);
+      }
+      const datas = Data.map((data) => ({ ...data }));
+
+
+      this.setState({ showAdditionalFields: true, characteristics, machine: machine[0], summaries: summaries, datas, len })
     } catch (error) {
-      console.log(`Erreur lors de cnx a la liste Machine : `, error);
+      console.log(`Erreur lors de cnx a la liste  : `, error);
     }
-    try {
-      ;
-    } catch (error) {
-      console.log("Une erreur s'est produite lors de la récupération des éléments de la liste : ", error);
-    }
+
+
   };
 
   private handleAdditionalFieldsSubmit = async (): Promise<void> => {
@@ -138,7 +165,6 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
 
         // Ajouter 1 pour obtenir le nouvel ID
         const NID = lID + 1;
-        console.log("newID" + NID);
         for (const characteristic of characteristics) { // Utilisation d'une boucle for pour itérer sur les caractéristiques
 
           var UID = d + NID;
@@ -182,6 +208,8 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
   };
 
   private handleNameChange2 = async (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, characteristic: ICharacteristic, index: number): Promise<void> => {
+
+    console.log("datas : " + this.state.datas[0].vals);
     const characteristics = [...this.state.characteristics];
     const target = event.target as HTMLInputElement;
     const v = target.value;
@@ -198,26 +226,111 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     } else {
       colors[index] = 'black';
     }
-    console.log("change...........");
-    const graphVals = [];
-    for (const summary of this.state.summaries) {
-      if (Number(summary.characteristic) === index) {
-        graphVals.push(summary.value);
-      }
-    }
-    console.log(graphVals);
-    
-   
-    
-    this.setState({ characteristics, colors }); // Mettez à jour l'état characteristics et colors
-  };
+    // Faites une copie de this.state.datas2
+    const dt = this.state.datas.map((data) => ({ ...data }));
+    const graphVal = Number(v);
+    const graphDate = new Date().toISOString();
+    const point = { val: graphVal, date: graphDate };
+    const len = this.state.len[index];
+    // Assurez-vous que index est un index valide pour accéder aux éléments de dt
 
+    dt[index].vals[len] = (point.val);
+    dt[index].dates[len] = (point.date);
+    const datas = dt.map((data) => ({ ...data }));
+    // Mettez à jour l'état datas avec dt et les autres valeurs mises à jour
+    this.setState({ datas, characteristics, colors }, () => {
+      this.forceUpdate();
+    });
+
+  };
+  private formatDates=(dates:string[]) =>{
+    return dates.map(dateString => {
+      const date = new Date(dateString);
+      const day = ('0' + date.getDate()).slice(-2);
+      const month = ('0' + (date.getMonth() + 1)).slice(-2);
+      const year = date.getFullYear().toString().slice(-2);
+      return `${day}-${month}-${year}`;
+    });
+  }
+  
 
   public render(): React.ReactElement<IFormProps> {
     const { isSubmitting, isSubmissionSuccessful } = this.state;
+
     if (isSubmissionSuccessful) {
       return <ThankYouMessage />;
     }
+
+    const chartDataf = (index: number) => {
+      console.log(this.state.datas[0].vals)
+      const dataMinusOneLength = this.state.datas[index].vals.length - 1;
+      const colors = [];
+
+      for (let i = 0; i < dataMinusOneLength; i++) {
+        colors.push('rgba(75, 192, 192)');
+      }
+
+      colors.push(this.state.colors[index]);
+      const data = [...this.state.datas[index].vals];
+      const label = [...this.state.datas[index].dates];
+      console.log("dataaaadd : " + data);
+      const limInfArray = [];
+      const limSupArray = [];
+      const l= data.length>7 ? data.length : 7;
+      for (let i = 0; i < l; i++) {
+        limInfArray.push(this.state.characteristics[index].linInf);
+        limSupArray.push(this.state.characteristics[index].limSup);
+      }
+
+      return {
+        labels: this.formatDates(label),
+        datasets: [
+          {
+            label: "Valeur",
+            data: data,
+            borderColor: 'rgba(75, 192, 192, 0.8)', // Set the color for the line
+            pointBorderColor: colors, // Set the color for the last value
+            pointBackgroundColor: colors, // Set the color for the last value
+            pointBorderWidth: 2,
+            fill: false
+          },
+          {
+            label: "LimSup",
+            data: limSupArray,
+            borderColor: "rgba(255, 99, 132)", // Set the color for the line
+            borderWidth : 2,
+            pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            fill: false
+          },
+          {
+            label: "LimInf",
+            data: limInfArray,
+            borderWidth : 2,
+            borderColor:"rgba(255, 99, 132)" , // Set the color for the line
+            pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            fill: false
+          }
+
+        ]
+      }
+    };
+    const chartOptions = {
+      scales: {
+        x: {
+          ticks: {
+            display: false // Masquer les labels sur l'axe des x
+          }
+        },
+        y: {
+          ticks: {
+            display: false // Masquer les labels sur l'axe des y
+          }
+        }
+      }
+    };
+    
     return (
       <div>
         {isSubmitting && !isSubmissionSuccessful ? (
@@ -254,16 +367,22 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             </div>
             <div className={styles["container12"]}>
               <form className={styles["form2"]}>
-              <p><br />  *Please enter the required data. <br /></p>
+                <p><br />  *Please enter the required data. <br /></p>
                 {this.state.characteristics.map((characteristic, index) => (
                   <div className={styles["container121"]}>
-                    <div className={styles["container121-text"]}>hhhhhhhhhhhhh</div>
+                    <div className={styles["container121-text"]}> <ChartControl
+                      key={index}
+                      type="line"
+                      data={chartDataf(index)}
+                      options={chartOptions}
+
+                    /> </div>
                     <Stack key={characteristic.ID} verticalAlign="center" tokens={{ childrenGap: 10 }}>
                       <div className={styles["container121-text"]}>
                         <TextField
                           key={characteristic.ID}
-                          placeholder={"valeur : " + (index + 1)+ "..."}
-                          value={characteristic.val ? String(characteristic.val) : ""}
+                          placeholder={"valeur : " + (index + 1) + "..."}
+                          defaultValue={characteristic.val ? String(characteristic.val) : ""}
                           id={`val-${characteristic.ID}`}
                           required
                           onChange={(event) => this.handleNameChange2(event, characteristic, index)}
@@ -288,24 +407,24 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                   </div>
                 ))}
                 <button onClick={this.Submit}>Envoyer</button>
-                  <Dialog
-                    hidden={!this.state.showDialog}
-                    dialogContentProps={{
-                      type: DialogType.normal,
-                      title: 'Confirmation',
-                      closeButtonAriaLabel: 'Close',
-                      subText: 'Are you sure you want to submit the form?'
-                    }}
-                    modalProps={{
-                      isBlocking: true,
-                      styles: { main: { maxWidth: 450 } }
-                    }}
-                  >
-                    <DialogFooter>
-                      <button onClick={this.handleConfirm}>Yes</button>
-                      <button onClick={this.handleCancel}>No</button>
-                    </DialogFooter>
-                  </Dialog>
+                <Dialog
+                  hidden={!this.state.showDialog}
+                  dialogContentProps={{
+                    type: DialogType.normal,
+                    title: 'Confirmation',
+                    closeButtonAriaLabel: 'Close',
+                    subText: 'Are you sure you want to submit the form?'
+                  }}
+                  modalProps={{
+                    isBlocking: true,
+                    styles: { main: { maxWidth: 450 } }
+                  }}
+                >
+                  <DialogFooter>
+                    <button onClick={this.handleConfirm}>Yes</button>
+                    <button onClick={this.handleCancel}>No</button>
+                  </DialogFooter>
+                </Dialog>
               </form>
             </div>
           </div>
