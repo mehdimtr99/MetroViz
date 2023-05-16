@@ -22,5 +22,6 @@ export interface IFormStates {
   datas: IData[],
   datas2: IData[],
   point : IPoint,
-  len : number[]
+  len : number[],
+  machineExistpas : boolean
 }

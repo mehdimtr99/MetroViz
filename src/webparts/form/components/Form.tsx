@@ -1,18 +1,20 @@
 import * as React from 'react';
 import { IFormProps } from './IFormProps';
 import { IFormStates } from './IFormStates';
-import { Stack, TextField, Text } from 'office-ui-fabric-react';
+import { Stack, TextField, Text, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { ICharacteristic } from './ICharacteristic';
 import { IMachine } from './IMachine';
 import { IControl } from './IControl';
 import { sp } from '@pnp/sp/presets/all';
-import ThankYouMessage from './ThankYouMessage';
-import Spinner from './Spinner';
 import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
 import styles from './Form.module.scss';
 import { ISummary } from './ISummary';
 import { ChartControl } from '@pnp/spfx-controls-react/lib/ChartControl';
 import { IData } from './IData';
+import SuccessMessage from './ThankYouMessage';
+
+
+
 // Set SharePoint site URL
 sp.setup({
   sp: {
@@ -29,6 +31,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       spfxContext: this.context
     })
 
+
     this.state = {
       num: '',
       showAdditionalFields: false,
@@ -38,7 +41,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       isSubmitting: false,
       isSubmissionSuccessful: false,
       machine: { marking: 'a', type: '', family: '', manifacturer: '', SN: '' },
-      control: { id: 0, employee: '', marking: '', date: '', conformity: true },
+      control: { id_ctl: 0, employee: '', marking: '', date: '', conformity: true },
       summary: { Id: 0, marking: '', characteristic: '', value: 0, limInf: 0, limSup: 0, conformity: true, type: '', manifacturer: '', family: '', date: '', employee: '' },
       newId: 0,
       showDialog: false,
@@ -46,9 +49,14 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       datas: [],
       datas2: [],
       point: { val: 0, date: '' },
-      len: []
+      len: [],
+      machineExistpas : false
     };
   }
+
+
+
+
 
   private Submit = () => {
     event.preventDefault();
@@ -69,35 +77,127 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     this.setState({ showDialog: false });
   }
 
+
+ /* private getCurrentUserEmail = async () => {
+    try {
+      const currentUser = await sp.web.currentUser();
+      console.log(currentUser)
+      return currentUser.Email;
+    } catch (error) {
+      console.log("Error getting current user email:", error);
+      return null;
+    }
+  };*/
+  private sendEmail = async () => {
+   
+      const toEmail = "Michel.Tatti@ceratizit.com";
+      const subject = "Contrôle de la machine non conforme";
+      const body = `<html>
+      <head>
+        <style>
+          table, td, div, h1, p {
+            font-family: Arial, sans-serif;
+          }
+          @media screen and (max-width: 530px) {
+            .unsub {
+              display: block;
+              padding: 8px;
+              margin-top: 14px;
+              border-radius: 6px;
+              background-color: #555555;
+              text-decoration: none !important;
+              font-weight: bold;
+            }
+            .col-lge {
+              max-width: 100% !important;
+            }
+          }
+          @media screen and (min-width: 531px) {
+            .col-sml {
+              max-width: 27% !important;
+            }
+            .col-lge {
+              max-width: 73% !important;
+            }
+          }
+        </style>
+      </head>
+      <body style="margin:0;padding:0;word-spacing:normal;background-color:#939297;">
+        <div role="article" aria-roledescription="email" lang="en" style="text-size-adjust:100%;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;background-color:#939297;">
+          <table role="presentation" style="width:100%;border:none;border-spacing:0;">
+            <tr>
+              <td align="center" style="padding:0;">
+               
+                <table role="presentation" style="width:94%;max-width:600px;border:none;border-spacing:0;text-align:left;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#363636;">
+                  
+                  <tr>
+                    <td style="padding:30px;background-color:#ffffff;">
+                      <h1 style="margin-top:0;margin-bottom:16px;font-size:26px;line-height:32px;font-weight:bold;letter-spacing:-0.02em;">Contrôle de la machine non conforme</h1>
+                      <p style="margin:0;">Le contrôle de la machine <strong>${this.state.machine.marking}</strong> du fabricant <strong>${this.state.machine.manifacturer}</strong>, de type <strong>${this.state.machine.type}</strong> effectué le <strong>${new Date().toLocaleDateString()}</strong> par l'employé <strong>${(await sp.web.currentUser.get()).Title}</strong> n'est pas conforme.</p>                
+                </table>
+             
+              </td>
+            </tr>
+          </table>
+        </div>
+      </body>
+      </html>
+      `;
+
+      try {
+        await sp.utility.sendEmail({
+          To: [toEmail],
+          Subject: subject,
+          Body: body,
+         
+        });
+
+        console.log("Email sent successfully.");
+      } catch (error) {
+        console.log("Error sending email:", error);
+      }
+    
+  };
+
+
+
+
   private handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     try {
-      const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id', 'value', 'limSup', 'linInf', 'marking').filter(`marking eq '${this.state.num}'`).get();
       const machine: IMachine[] = await sp.web.lists.getByTitle("Machine").items.filter(`marking eq '${this.state.num}'`).get();
-      const summaries: ISummary[] = await sp.web.lists.getByTitle("Summary").items.filter(`marking eq '${this.state.num}'`).get();
-      console.log(summaries);
-
-      const Data: IData[] = [];
-      const len = [];
-      for (let i = 0; i < characteristics.length; i++) {
-        const vals = [];
-        const dates = [];
-        for (const summary of summaries) {
-          if (Number(summary.characteristic) == i) {
-
-            vals.push(summary.value);
-            dates.push(summary.date);
+      if(machine.length == 0){
+        console.log(machine);
+        console.log("machine n'existe pas");
+        this.setState({ showAdditionalFields: false, machineExistpas : true});
+      }else{
+        const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id', 'value', 'limSup', 'linInf', 'marking').filter(`marking eq '${this.state.num}'`).get();
+        const summaries: ISummary[] = await sp.web.lists.getByTitle("Summary").items.filter(`marking eq '${this.state.num}'`).get();
+        console.log(summaries);
+  
+        const Data: IData[] = [];
+        const len = [];
+        for (let i = 0; i < characteristics.length; i++) {
+          const vals = [];
+          const dates = [];
+          for (const summary of summaries) {
+            if (Number(summary.characteristic) == i) {
+  
+              vals.push(summary.value);
+              dates.push(summary.date);
+            }
           }
+          const data: IData = { vals, dates };
+          len.push(vals.length);
+  
+          Data.push(data);
         }
-        const data: IData = { vals, dates };
-        len.push(vals.length);
-
-        Data.push(data);
+        const datas = Data.map((data) => ({ ...data }));
+  
+  
+        this.setState({ showAdditionalFields: true, characteristics, machine: machine[0], summaries: summaries, datas, len })
       }
-      const datas = Data.map((data) => ({ ...data }));
-
-
-      this.setState({ showAdditionalFields: true, characteristics, machine: machine[0], summaries: summaries, datas, len })
+     
     } catch (error) {
       console.log(`Erreur lors de cnx a la liste  : `, error);
     }
@@ -107,6 +207,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
 
   private handleAdditionalFieldsSubmit = async (): Promise<void> => {
     event.preventDefault();
+    var conformityTotal = true;
     if (1) {
       this.setState({ showAdditionalFields: false, isSubmitting: true, isSubmissionSuccessful: false });
       const { characteristics } = this.state; // Utilisation de la déstructuration pour obtenir la liste des caractéristiques
@@ -114,6 +215,11 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
         const list = sp.web.lists.getByTitle("Characteristic");
         for (const characteristic of characteristics) { // Utilisation d'une boucle for pour itérer sur les caractéristiques
           const item = list.items.getById(Number(characteristic.ID));
+          if (!(characteristic.linInf <= characteristic.val && characteristic.val <= characteristic.limSup)) {
+            conformityTotal = false;
+            this.sendEmail();
+            console.log("conformityTotal" + conformityTotal);
+          }
           await item.update({
             value: characteristic.val
           });
@@ -137,11 +243,13 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
           date: new Date().toISOString(),
           employee: employee.Title,
           marking: characteristics[0].marking,
-          id_ctl: newId
+          id_ctl: newId,
+          conformity: conformityTotal
         };
 
         await list.items.add(newItem).then(() => {
           console.log(`Nouvel élément ajouté avec succès avec l'ID de contrôle : ${newId} !`);
+          
         }).catch((error) => {
           console.log(`Erreur lors de l'ajout du nouvel élément dans control `, error);
         });
@@ -175,7 +283,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             value: characteristic.val,
             limInf: characteristic.linInf,
             limSup: characteristic.limSup,
-            conformity: characteristic.conformity,
+            conformity: (characteristic.linInf <= characteristic.val && characteristic.val <= characteristic.limSup),
             type: this.state.machine.type,
             manifacturer: this.state.machine.manifacturer,
             family: this.state.machine.family,
@@ -187,6 +295,8 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             await listSummary.items.add(newItemSummary).then(() => {
               console.log('Nouvel élément ajouté avec succès dans Summary');
               this.setState({ isSubmitting: false, isSubmissionSuccessful: true });
+              // Recharger la page après 5 secondes
+             setTimeout(() => {location.reload(); }, 1000);
             }).catch((error) => {
               console.log(`Erreur lors de l'ajout du nouvel élément : `, error);
               this.setState({ isSubmitting: false, isSubmissionSuccessful: false });
@@ -243,7 +353,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     });
 
   };
-  private formatDates=(dates:string[]) =>{
+  private formatDates = (dates: string[]) => {
     return dates.map(dateString => {
       const date = new Date(dateString);
       const day = ('0' + date.getDate()).slice(-2);
@@ -252,14 +362,20 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       return `${day}-${month}-${year}`;
     });
   }
-  
+
+ 
 
   public render(): React.ReactElement<IFormProps> {
     const { isSubmitting, isSubmissionSuccessful } = this.state;
 
     if (isSubmissionSuccessful) {
-      return <ThankYouMessage />;
+      return (
+        <SuccessMessage/>
+      );
     }
+
+
+    
 
     const chartDataf = (index: number) => {
       console.log(this.state.datas[0].vals)
@@ -276,7 +392,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       console.log("dataaaadd : " + data);
       const limInfArray = [];
       const limSupArray = [];
-      const l= data.length>7 ? data.length : 7;
+      const l = data.length > 7 ? data.length : 7;
       for (let i = 0; i < l; i++) {
         limInfArray.push(this.state.characteristics[index].linInf);
         limSupArray.push(this.state.characteristics[index].limSup);
@@ -298,7 +414,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             label: "LimSup",
             data: limSupArray,
             borderColor: "rgba(255, 99, 132)", // Set the color for the line
-            borderWidth : 2,
+            borderWidth: 2,
             pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
             pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
             fill: false
@@ -306,8 +422,8 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
           {
             label: "LimInf",
             data: limInfArray,
-            borderWidth : 2,
-            borderColor:"rgba(255, 99, 132)" , // Set the color for the line
+            borderWidth: 2,
+            borderColor: "rgba(255, 99, 132)", // Set the color for the line
             pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
             pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
             fill: false
@@ -330,24 +446,29 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
         }
       }
     };
-    
+
     return (
       <div>
         {isSubmitting && !isSubmissionSuccessful ? (
           // Afficher un spinner de chargement pendant la soumission du formulaire
-          <Spinner />
+          <Spinner size={SpinnerSize.large} label={"Chargement ..."} />
         ) : (
           this.state.showAdditionalFields == false && !isSubmissionSuccessful && !isSubmitting && (
             <form onSubmit={this.handleSubmit}>
               <div className={styles["container"]} >
-                <div className={styles["container-close"]} >&times;</div>
+                <div className={styles["container-close"]} >MV</div>
                 <img
                   src={require('../assets/Metro.png')}
                   alt="image" />
                 <div className={styles["container-text"]}  >
-                  <h2> Welcome to  <br /><span style={{ color: "rgba(186,71,64,1) !important", fontSize: "22px !important" }}>MetroViz</span></h2>
-                  <p>the data visualization platform for the Metrology Department. <br /><br />  *Please enter the required data. <br /></p>
+                  <h2> Bienvenue à  <br /><span style={{ color: "rgba(186,71,64,1) !important", fontSize: "22px !important" }}>MetroViz</span></h2>
+                  <p>La plateforme de visualisation des données pour le département de métrologie. <br /><br />  *Veuillez fournir les données requises. <br /></p>
                   <TextField className={styles['textField']} onChange={this.handleNameChange} type="number" value={this.state.num} placeholder='Numero de Machine' required />
+                  {this.state.machineExistpas && (
+                          <Text variant="small" style={{ color: 'red', textAlignLast: 'right', marginBottom: "20px",marginTop: "-10px" }} className='text-right'>
+                            machine n'existe pas !
+                          </Text>
+                        )}
                   <button type='submit'>Recherche</button>
                   <span>© Ceratizit</span>
                 </div>
@@ -367,7 +488,6 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             </div>
             <div className={styles["container12"]}>
               <form className={styles["form2"]}>
-                <p><br />  *Please enter the required data. <br /></p>
                 {this.state.characteristics.map((characteristic, index) => (
                   <div className={styles["container121"]}>
                     <div className={styles["container121-text"]}> <ChartControl
@@ -394,12 +514,12 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                         />
                         {this.state.colors[index] === 'red' && (
                           <Text variant="small" style={{ color: 'red', textAlignLast: 'right' }} className='text-right'>
-                            Value out of range
+                            valeur hors plage
                           </Text>
                         )}
                         {this.state.colors[index] === 'green' && (
                           <Text variant="small" style={{ color: 'green', textAlign: 'right' }} className='text-right'>
-                            Valid value
+                            valueur valide
                           </Text>
                         )}
                       </div>
@@ -412,17 +532,17 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                   dialogContentProps={{
                     type: DialogType.normal,
                     title: 'Confirmation',
-                    closeButtonAriaLabel: 'Close',
-                    subText: 'Are you sure you want to submit the form?'
+                    closeButtonAriaLabel: "",
+                    subText: 'Êtes-vous sûr(e) de vouloir soumettre le formulaire ?'
                   }}
                   modalProps={{
                     isBlocking: true,
-                    styles: { main: { maxWidth: 450 } }
+                    styles: { main: { maxWidth: 550 } }
                   }}
                 >
                   <DialogFooter>
-                    <button onClick={this.handleConfirm}>Yes</button>
-                    <button onClick={this.handleCancel}>No</button>
+                    <button style={{ color: "rgb(75, 192, 192)", padding: "5px 8px", backgroundColor: "rgba(75, 192, 192, 0.5)", border: "none", cursor:"pointer"}} onClick={this.handleConfirm}>Envoyer</button>
+                    <button style={{ color: "rgba(255, 99, 132)", padding: "5px 8px", backgroundColor: "rgba(255, 99, 132, 0.5)", border: "none", cursor:"pointer" }} onClick={this.handleCancel}>Annuler</button>
                   </DialogFooter>
                 </Dialog>
               </form>

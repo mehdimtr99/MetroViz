@@ -1,5 +1,5 @@
 export interface IControl{
-   id : number,
+   id_ctl: number,
    employee : string,
    marking : string,
    date : string,
