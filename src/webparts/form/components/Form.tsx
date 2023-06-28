@@ -14,7 +14,6 @@ import { IData } from './IData';
 import SuccessMessage from './ThankYouMessage';
 
 
-
 // Set SharePoint site URL
 sp.setup({
   sp: {
@@ -40,9 +39,9 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       colors: [],
       isSubmitting: false,
       isSubmissionSuccessful: false,
-      machine: { marking: 'a', type: '', family: '', manifacturer: '', SN: '' },
+      machine: { marking: 'a', machinetype: '', family: '', manifacturer: '', SN: '' },
       control: { id_ctl: 0, employee: '', marking: '', date: '', conformity: true },
-      summary: { Id: 0, marking: '', characteristic: '', value: 0, limInf: 0, limSup: 0, conformity: true, type: '', manifacturer: '', family: '', date: '', employee: '' },
+      summary: { Id: 0, marking: '', characteristic: '', value: 0, limInf: 0, limSup: 0, conformity: true, machinetype: '', manifacturer: '', family: '', date: '', employee: '' },
       newId: 0,
       showDialog: false,
       summaries: [],
@@ -90,7 +89,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
   };*/
   private sendEmail = async () => {
    
-      const toEmail = "Michel.Tatti@ceratizit.com";
+      const toEmail = "mehdi.mathor@ceratizit.com";
       const subject = "Contrôle de la machine non conforme";
       const body = `<html>
       <head>
@@ -133,7 +132,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                   <tr>
                     <td style="padding:30px;background-color:#ffffff;">
                       <h1 style="margin-top:0;margin-bottom:16px;font-size:26px;line-height:32px;font-weight:bold;letter-spacing:-0.02em;">Contrôle de la machine non conforme</h1>
-                      <p style="margin:0;">Le contrôle de la machine <strong>${this.state.machine.marking}</strong> du fabricant <strong>${this.state.machine.manifacturer}</strong>, de type <strong>${this.state.machine.type}</strong> effectué le <strong>${new Date().toLocaleDateString()}</strong> par l'employé <strong>${(await sp.web.currentUser.get()).Title}</strong> n'est pas conforme.</p>                
+                      <p style="margin:0;">Le contrôle de la machine <strong>${this.state.machine.marking}</strong> du fabricant <strong>${this.state.machine.manifacturer}</strong>, de type <strong>${this.state.machine.machinetype}</strong> effectué le <strong>${new Date().toLocaleDateString()}</strong> par l'employé <strong>${(await sp.web.currentUser.get()).Title}</strong> n'est pas conforme.</p>                
                 </table>
              
               </td>
@@ -167,13 +166,13 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     try {
       const machine: IMachine[] = await sp.web.lists.getByTitle("Machine").items.filter(`marking eq '${this.state.num}'`).get();
       if(machine.length == 0){
-        console.log(machine);
+       
         console.log("machine n'existe pas");
         this.setState({ showAdditionalFields: false, machineExistpas : true});
       }else{
-        const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id', 'value', 'limSup', 'linInf', 'marking').filter(`marking eq '${this.state.num}'`).get();
+        const characteristics: ICharacteristic[] = await sp.web.lists.getByTitle('Characteristic').items.select('id_char', 'value', 'limSup', 'limInf','marking').filter(`marking eq '${this.state.num}'`).get();
         const summaries: ISummary[] = await sp.web.lists.getByTitle("Summary").items.filter(`marking eq '${this.state.num}'`).get();
-        console.log(summaries);
+       
   
         const Data: IData[] = [];
         const len = [];
@@ -213,9 +212,11 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       const { characteristics } = this.state; // Utilisation de la déstructuration pour obtenir la liste des caractéristiques
       try {
         const list = sp.web.lists.getByTitle("Characteristic");
+        
         for (const characteristic of characteristics) { // Utilisation d'une boucle for pour itérer sur les caractéristiques
-          const item = list.items.getById(Number(characteristic.ID));
-          if (!(characteristic.linInf <= characteristic.val && characteristic.val <= characteristic.limSup)) {
+          const item = list.items.getById(Number(characteristic.id_char)+1); 
+          console.log("---->",list.items.get()) ;
+          if (!(characteristic.limInf <= characteristic.val && characteristic.val <= characteristic.limSup)) {
             conformityTotal = false;
             this.sendEmail();
             console.log("conformityTotal" + conformityTotal);
@@ -281,10 +282,10 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
             marking: this.state.machine.marking,
             characteristic: String(d),
             value: characteristic.val,
-            limInf: characteristic.linInf,
+            limInf: characteristic.limInf,
             limSup: characteristic.limSup,
-            conformity: (characteristic.linInf <= characteristic.val && characteristic.val <= characteristic.limSup),
-            type: this.state.machine.type,
+            conformity: (characteristic.limInf <= characteristic.val && characteristic.val <= characteristic.limSup),
+            machinetype: this.state.machine.machinetype,
             manifacturer: this.state.machine.manifacturer,
             family: this.state.machine.family,
             date: new Date().toISOString(),
@@ -296,7 +297,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
               console.log('Nouvel élément ajouté avec succès dans Summary');
               this.setState({ isSubmitting: false, isSubmissionSuccessful: true });
               // Recharger la page après 5 secondes
-             setTimeout(() => {location.reload(); }, 1000);
+              setTimeout(() => {location.reload(); }, 1000);
             }).catch((error) => {
               console.log(`Erreur lors de l'ajout du nouvel élément : `, error);
               this.setState({ isSubmitting: false, isSubmissionSuccessful: false });
@@ -326,7 +327,10 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     let colors = [...this.state.colors]; // Copiez l'état actuel des couleurs
     if (v != null && v != '') {
       characteristics[index].val = Number(v);
-      if (characteristic.linInf && Number(v) < characteristic.linInf) {
+      console.log(Number(v));
+      console.log(characteristic.limInf);
+      console.log(characteristic.limSup);
+      if (characteristic.limInf && Number(v) < characteristic.limInf) {
         colors[index] = 'red'; // Mettez à jour la couleur dans l'état colors
       } else if (characteristic.limSup && Number(v) > characteristic.limSup) {
         colors[index] = 'red'; // Mettez à jour la couleur dans l'état colors
@@ -378,7 +382,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     
 
     const chartDataf = (index: number) => {
-      console.log(this.state.datas[0].vals)
+      
       const dataMinusOneLength = this.state.datas[index].vals.length - 1;
       const colors = [];
 
@@ -389,12 +393,12 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
       colors.push(this.state.colors[index]);
       const data = [...this.state.datas[index].vals];
       const label = [...this.state.datas[index].dates];
-      console.log("dataaaadd : " + data);
+     
       const limInfArray = [];
       const limSupArray = [];
       const l = data.length > 7 ? data.length : 7;
       for (let i = 0; i < l; i++) {
-        limInfArray.push(this.state.characteristics[index].linInf);
+        limInfArray.push(this.state.characteristics[index].limInf);
         limSupArray.push(this.state.characteristics[index].limSup);
       }
 
@@ -483,7 +487,7 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                 <li><span className={styles["list-title"]}>Numéro de machine :</span>{this.state.machine.marking}</li>
                 <li><span className={styles["list-title"]}>Fabricant :</span>{this.state.machine.manifacturer}</li>
                 <li><span className={styles["list-title"]}>Famille :</span>{this.state.machine.family}</li>
-                <li><span className={styles["list-title"]}>Type :</span>{this.state.machine.type}</li>
+                <li><span className={styles["list-title"]}>Type :</span>{this.state.machine.machinetype}</li>
               </ul>
             </div>
             <div className={styles["container12"]}>
@@ -497,13 +501,13 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
                       options={chartOptions}
 
                     /> </div>
-                    <Stack key={characteristic.ID} verticalAlign="center" tokens={{ childrenGap: 10 }}>
+                    <Stack key={characteristic.id_char} verticalAlign="center" tokens={{ childrenGap: 10 }}>
                       <div className={styles["container121-text"]}>
                         <TextField
-                          key={characteristic.ID}
+                          key={characteristic.id_char}
                           placeholder={"valeur : " + (index + 1) + "..."}
                           defaultValue={characteristic.val ? String(characteristic.val) : ""}
-                          id={`val-${characteristic.ID}`}
+                          id={`val-${characteristic.id_char}`}
                           required
                           onChange={(event) => this.handleNameChange2(event, characteristic, index)}
                           className='textField'

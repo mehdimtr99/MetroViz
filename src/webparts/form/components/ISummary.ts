@@ -6,7 +6,7 @@ export interface ISummary{
    limInf : number,
    limSup : number,
    conformity : boolean,
-   type : string,
+   machinetype : string,
    manifacturer : string,
    family : string,
    date : string,

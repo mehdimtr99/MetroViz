@@ -1,14 +1,14 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "form-client-side-solution",
+    "name": "MetroViz",
     "id": "e99ee1d8-31ce-4e38-a848-869fd5459223",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
     "developer": {
-      "name": "",
+      "name": "Mehdi MATHOR",
       "websiteUrl": "",
       "privacyUrl": "",
       "termsOfUseUrl": "",

@@ -1,6 +1,6 @@
 export interface IMachine {
    marking: string,
-   type: string,
+   machinetype: string,
    family: string,
    manifacturer: string,
    SN: string

@@ -1,8 +1,8 @@
 export interface ICharacteristic {
-    ID :string;
+    id_char :string;
     val : number;
     limSup :number;
-    linInf :number;
+    limInf :number;
     marking : string;
     conformity : boolean;
 }
