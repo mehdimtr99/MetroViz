@@ -159,8 +159,6 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
   };
 
 
-
-
   private handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     try {
@@ -346,8 +344,6 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
     const graphDate = new Date().toISOString();
     const point = { val: graphVal, date: graphDate };
     const len = this.state.len[index];
-    // Assurez-vous que index est un index valide pour accéder aux éléments de dt
-
     dt[index].vals[len] = (point.val);
     dt[index].dates[len] = (point.date);
     const datas = dt.map((data) => ({ ...data }));
@@ -408,28 +404,28 @@ export default class Form extends React.Component<IFormProps, IFormStates> {
           {
             label: "Valeur",
             data: data,
-            borderColor: 'rgba(75, 192, 192, 0.8)', // Set the color for the line
-            pointBorderColor: colors, // Set the color for the last value
-            pointBackgroundColor: colors, // Set the color for the last value
+            borderColor: 'rgba(75, 192, 192, 0.8)', // couleur de la ligne
+            pointBorderColor: colors, // couleur de la derniere valeur
+            pointBackgroundColor: colors, // couleur de la derniere valeur
             pointBorderWidth: 2,
             fill: false
           },
           {
             label: "LimSup",
             data: limSupArray,
-            borderColor: "rgba(255, 99, 132)", // Set the color for the line
+            borderColor: "rgba(255, 99, 132)", // couleur de la ligne
             borderWidth: 2,
-            pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
-            pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            pointBorderColor: 'rgba(100,100,100,0)', // couleur de la derniere valeur
+            pointBackgroundColor: 'rgba(100,100,100,0)', // couleur de la derniere valeur
             fill: false
           },
           {
             label: "LimInf",
             data: limInfArray,
             borderWidth: 2,
-            borderColor: "rgba(255, 99, 132)", // Set the color for the line
-            pointBorderColor: 'rgba(100,100,100,0)', // Set the color for the last value
-            pointBackgroundColor: 'rgba(100,100,100,0)', // Set the color for the last value
+            borderColor: "rgba(255, 99, 132)", //  couleur de la ligne
+            pointBorderColor: 'rgba(100,100,100,0)', // couleur de la derniere valeur
+            pointBackgroundColor: 'rgba(100,100,100,0)', // couleur de la derniere valeur
             fill: false
           }
 
